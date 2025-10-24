@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Slackr - UNSW Messaging Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Slackr - A modern messaging platform for UNSW students">
+
+  <!-- Styles -->
+  <link rel="stylesheet" type="text/css" media="screen" href="styles/global.css" />
+</head>
+
+<body>
+  <!-- Main Application Container -->
+  <div id="app">
+    <!-- Login/Register Screen -->
+    <div id="auth-container">
+      <!-- Login Form -->
+      <div id="login-container">
+        <h1>Welcome to Slackr</h1>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" required placeholder="Enter your email">
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" required placeholder="Enter your password">
+          </div>
+          <button type="submit" id="login-submit">Login</button>
+        </form>
+        <p>Don't have an account? <button id="register-link">Register here</button></p>
+      </div>
+
+      <!-- Register Form (hidden by default) -->
+      <div id="register-container" style="display: none;">
+        <h1>Register for Slackr</h1>
+        <form id="register-form">
+          <div class="form-group">
+            <label for="register-email">Email</label>
+            <input type="email" id="register-email" required placeholder="Enter your email">
+          </div>
+          <div class="form-group">
+            <label for="register-name">Name</label>
+            <input type="text" id="register-name" required placeholder="Enter your name">
+          </div>
+          <div class="form-group">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" required placeholder="Enter your password">
+          </div>
+          <div class="form-group">
+            <label for="register-password-confirm">Confirm Password</label>
+            <input type="password" id="register-password-confirm" required placeholder="Confirm your password">
+          </div>
+          <button type="submit" id="register-submit">Register</button>
+        </form>
+        <p>Already have an account? <button id="login-link">Login here</button></p>
+      </div>
+    </div>
+
+    <!-- Dashboard Container (hidden by default) -->
+    <div id="dashboard-container" style="display: none;">
+      <!-- Header with user info -->
+      <header class="dashboard-header">
+        <h1>Slackr</h1>
+        <div class="user-controls">
+          <button id="avatar-label">My Profile</button>
+          <button id="logout-button">Logout</button>
+        </div>
+      </header>
+
+      <div class="dashboard-main">
+        <!-- Sidebar with channel list -->
+        <aside class="sidebar">
+          <div class="channel-section">
+            <h2>Channels</h2>
+            <button id="create-channel-button">+ Create Channel</button>
+            <div id="channel-list"></div>
+          </div>
+        </aside>
+
+        <!-- Main content area -->
+        <main class="content-area">
+          <div id="welcome-screen">
+            <h2>Welcome to Slackr!</h2>
+            <p>Select a channel to start messaging</p>
+          </div>
+
+          <!-- Channel view (will be populated dynamically) -->
+          <div id="channel-view" style="display: none;">
+            <div id="channel-details-container"></div>
+            <div id="messages-container"></div>
+            <div class="message-input-container">
+              <textarea id="message-input" placeholder="Type your message here..."></textarea>
+              <button id="message-send-button">Send</button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Create Channel Modal (hidden by default) -->
+    <div id="create-channel-container" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h2>Create New Channel</h2>
+        <form id="create-channel-form">
+          <div class="form-group">
+            <label for="create-channel-name">Channel Name</label>
+            <input type="text" id="create-channel-name" required placeholder="Enter channel name">
+          </div>
+          <div class="form-group">
+            <label for="create-channel-description">Description (optional)</label>
+            <textarea id="create-channel-description" placeholder="Enter channel description"></textarea>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="create-channel-is-private">
+              Private Channel
+            </label>
+          </div>
+          <button type="submit" id="create-channel-submit">Create</button>
+          <button type="button" id="create-channel-cancel">Cancel</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Invite User Modal (hidden by default) -->
+    <div id="channel-invite-container" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h2>Invite Users to Channel</h2>
+        <div id="invite-user-list"></div>
+        <button id="invite-submit-button">Invite Selected Users</button>
+        <button id="invite-cancel-button">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Profile Modal (hidden by default) -->
+    <div id="profile-container" class="modal" style="display: none;">
+      <div class="modal-content">
+        <button class="close-button" id="profile-close">×</button>
+        <img id="profile-image" src="" alt="Profile" />
+        <h2 id="profile-name"></h2>
+        <p id="profile-email"></p>
+        <p id="profile-bio"></p>
+      </div>
+    </div>
+
+    <!-- Own Profile Modal (hidden by default) -->
+    <div id="own-profile-container" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h2>My Profile</h2>
+        <form id="own-profile-form">
+          <div class="form-group">
+            <label for="own-profile-image-input">Profile Photo</label>
+            <input type="file" id="own-profile-image-input" accept="image/*">
+          </div>
+          <div class="form-group">
+            <label for="own-profile-name">Name</label>
+            <input type="text" id="own-profile-name" required>
+          </div>
+          <div class="form-group">
+            <label for="own-profile-email">Email</label>
+            <input type="email" id="own-profile-email" required>
+          </div>
+          <div class="form-group">
+            <label for="own-profile-bio">Bio</label>
+            <textarea id="own-profile-bio"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="own-profile-password">New Password (optional)</label>
+            <input type="password" id="own-profile-password">
+          </div>
+          <button type="submit" id="own-profile-submit">Update Profile</button>
+          <button type="button" id="own-profile-cancel">Cancel</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Error Popup (hidden by default) -->
+    <div id="error-popup" class="modal" style="display: none;">
+      <div class="modal-content error">
+        <h2>Error</h2>
+        <p id="error-body"></p>
+        <button id="error-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="src/main.js"></script>
+</body>
+
+</html>

@@ -58,7 +58,9 @@ yarn-error.log*
 
 # Output files (use output/ directory instead)
 *.csv
+!progress.csv
 *.json
+!frontend/src/config.json
 *.xlsx
 output/
 
