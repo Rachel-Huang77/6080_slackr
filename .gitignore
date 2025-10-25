@@ -112,3 +112,8 @@ temp/
 
 # Yarn Integrity file
 .yarn-integrity
+
+# Backend server (external dependency, not part of assignment submission)
+ass3-backend/
+backend/
+*backend*/
