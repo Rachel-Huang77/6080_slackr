@@ -18,7 +18,7 @@
  * @param {File} file The file to be read.
  * @return {Promise<string>} Promise which resolves to the file as a data url.
  */
-export function fileToDataUrl(file) {
+export const fileToDataUrl = (file) => {
     const validFileTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     const valid = validFileTypes.find(type => type === file.type);
 
@@ -34,34 +34,37 @@ export function fileToDataUrl(file) {
     });
     reader.readAsDataURL(file);
     return dataUrlPromise;
-}
+};
 
 /**
  * Show an error popup to the user
+ * Uses #error-popup and #error-body DOM elements
  * @param {string} message - The error message to display
  */
-export function showError(message) {
+export const showError = (message) => {
     const errorPopup = document.getElementById('error-popup');
     const errorBody = document.getElementById('error-body');
 
     errorBody.textContent = message;
     errorPopup.style.display = 'flex';
-}
+};
 
 /**
  * Hide the error popup
+ * Hides #error-popup DOM element
  */
-export function hideError() {
+export const hideError = () => {
     const errorPopup = document.getElementById('error-popup');
     errorPopup.style.display = 'none';
-}
+};
 
 /**
  * Format ISO timestamp to readable date/time string
+ * Returns friendly format like "2 hours ago" or "Jan 15, 2025"
  * @param {string} isoString - ISO 8601 timestamp
  * @return {string} Formatted date/time string
  */
-export function formatTimestamp(isoString) {
+export const formatTimestamp = (isoString) => {
     const date = new Date(isoString);
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
@@ -91,51 +94,51 @@ export function formatTimestamp(isoString) {
         hour: '2-digit',
         minute: '2-digit'
     });
-}
+};
 
 /**
  * Store authentication token in localStorage
  * @param {string} token - The authentication token
  */
-export function setToken(token) {
+export const setToken = (token) => {
     localStorage.setItem('slackr-token', token);
-}
+};
 
 /**
  * Retrieve authentication token from localStorage
  * @return {string|null} The authentication token or null if not found
  */
-export function getToken() {
+export const getToken = () => {
     return localStorage.getItem('slackr-token');
-}
+};
 
 /**
  * Remove authentication token from localStorage
  */
-export function clearToken() {
+export const clearToken = () => {
     localStorage.removeItem('slackr-token');
-}
+};
 
 /**
  * Store user ID in localStorage
  * @param {number} userId - The user ID
  */
-export function setUserId(userId) {
+export const setUserId = (userId) => {
     localStorage.setItem('slackr-user-id', userId);
-}
+};
 
 /**
  * Retrieve user ID from localStorage
  * @return {number|null} The user ID or null if not found
  */
-export function getUserId() {
+export const getUserId = () => {
     const userId = localStorage.getItem('slackr-user-id');
     return userId ? parseInt(userId) : null;
-}
+};
 
 /**
  * Remove user ID from localStorage
  */
-export function clearUserId() {
+export const clearUserId = () => {
     localStorage.removeItem('slackr-user-id');
-}
+};

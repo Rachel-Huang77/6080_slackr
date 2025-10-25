@@ -20,74 +20,39 @@ import {
 console.log('Slackr application started!');
 
 /**
- * Initialize the application
+ * Show the authentication screen (login/register)
  */
-function init() {
-    // Check if user is already logged in
-    const token = getToken();
-    if (token) {
-        showDashboard();
-    } else {
-        showAuthScreen();
-    }
+const showAuthScreen = () => {
+    document.getElementById('auth-container').style.display = 'block';
+    document.getElementById('dashboard-container').style.display = 'none';
 
-    setupEventListeners();
-}
+    // Show login by default
+    document.getElementById('login-container').style.display = 'block';
+    document.getElementById('register-container').style.display = 'none';
+};
 
 /**
- * Set up all event listeners for the application
+ * Show the dashboard screen
  */
-function setupEventListeners() {
-    // Authentication listeners
-    setupAuthListeners();
+const showDashboard = () => {
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('dashboard-container').style.display = 'block';
 
-    // Error popup close listener
-    const errorClose = document.getElementById('error-close');
-    errorClose.addEventListener('click', hideError);
-
-    // Logout listener
-    const logoutButton = document.getElementById('logout-button');
-    logoutButton.addEventListener('click', handleLogout);
-}
-
-/**
- * Set up authentication-related event listeners
- */
-function setupAuthListeners() {
-    // Login form
-    const loginForm = document.getElementById('login-form');
-    loginForm.addEventListener('submit', handleLogin);
-
-    // Register form
-    const registerForm = document.getElementById('register-form');
-    registerForm.addEventListener('submit', handleRegister);
-
-    // Switch to register
-    const registerLink = document.getElementById('register-link');
-    registerLink.addEventListener('click', () => {
-        document.getElementById('login-container').style.display = 'none';
-        document.getElementById('register-container').style.display = 'block';
-    });
-
-    // Switch to login
-    const loginLink = document.getElementById('login-link');
-    loginLink.addEventListener('click', () => {
-        document.getElementById('register-container').style.display = 'none';
-        document.getElementById('login-container').style.display = 'block';
-    });
-}
+    // TODO: Load channels and user data
+    console.log('Dashboard loaded');
+};
 
 /**
  * Handle login form submission
  * @param {Event} event - The form submit event
  */
-function handleLogin(event) {
+const handleLogin = (event) => {
     event.preventDefault();
 
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
-    // Make API call to login
+    // Make API call to login using Promise chain
     fetch(`${BACKEND_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -112,13 +77,13 @@ function handleLogin(event) {
         showError('Failed to login. Please try again.');
         console.error('Login error:', error);
     });
-}
+};
 
 /**
  * Handle register form submission
  * @param {Event} event - The form submit event
  */
-function handleRegister(event) {
+const handleRegister = (event) => {
     event.preventDefault();
 
     const email = document.getElementById('register-email').value;
@@ -132,7 +97,7 @@ function handleRegister(event) {
         return;
     }
 
-    // Make API call to register
+    // Make API call to register using Promise chain
     fetch(`${BACKEND_URL}/auth/register`, {
         method: 'POST',
         headers: {
@@ -157,13 +122,13 @@ function handleRegister(event) {
         showError('Failed to register. Please try again.');
         console.error('Register error:', error);
     });
-}
+};
 
 /**
- * Handle logout
+ * Handle logout - clears session and returns to auth screen
  */
-function handleLogout() {
-    // Make API call to logout
+const handleLogout = () => {
+    // Make API call to logout using Promise chain
     const token = getToken();
 
     fetch(`${BACKEND_URL}/auth/logout`, {
@@ -189,30 +154,65 @@ function handleLogout() {
         showAuthScreen();
         console.error('Logout error:', error);
     });
-}
+};
 
 /**
- * Show the authentication screen (login/register)
+ * Set up authentication-related event listeners
  */
-function showAuthScreen() {
-    document.getElementById('auth-container').style.display = 'block';
-    document.getElementById('dashboard-container').style.display = 'none';
+const setupAuthListeners = () => {
+    // Login form
+    const loginForm = document.getElementById('login-form');
+    loginForm.addEventListener('submit', handleLogin);
 
-    // Show login by default
-    document.getElementById('login-container').style.display = 'block';
-    document.getElementById('register-container').style.display = 'none';
-}
+    // Register form
+    const registerForm = document.getElementById('register-form');
+    registerForm.addEventListener('submit', handleRegister);
+
+    // Switch to register
+    const registerLink = document.getElementById('register-link');
+    registerLink.addEventListener('click', () => {
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('register-container').style.display = 'block';
+    });
+
+    // Switch to login
+    const loginLink = document.getElementById('login-link');
+    loginLink.addEventListener('click', () => {
+        document.getElementById('register-container').style.display = 'none';
+        document.getElementById('login-container').style.display = 'block';
+    });
+};
 
 /**
- * Show the dashboard screen
+ * Set up all event listeners for the application
  */
-function showDashboard() {
-    document.getElementById('auth-container').style.display = 'none';
-    document.getElementById('dashboard-container').style.display = 'block';
+const setupEventListeners = () => {
+    // Authentication listeners
+    setupAuthListeners();
 
-    // TODO: Load channels and user data
-    console.log('Dashboard loaded');
-}
+    // Error popup close listener
+    const errorClose = document.getElementById('error-close');
+    errorClose.addEventListener('click', hideError);
+
+    // Logout listener
+    const logoutButton = document.getElementById('logout-button');
+    logoutButton.addEventListener('click', handleLogout);
+};
+
+/**
+ * Initialize the application - entry point
+ */
+const init = () => {
+    // Check if user is already logged in
+    const token = getToken();
+    if (token) {
+        showDashboard();
+    } else {
+        showAuthScreen();
+    }
+
+    setupEventListeners();
+};
 
 // Initialize the app when DOM is ready
 document.addEventListener('DOMContentLoaded', init);
