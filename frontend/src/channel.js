@@ -18,6 +18,7 @@ import { getUserId, showError, formatTimestamp } from './helpers.js';
 // Current selected channel state
 let currentChannelId = null;
 let currentChannelData = null;
+let allChannels = []; // Store all channels list for non-member access
 
 /**
  * Initialize channel functionality
@@ -47,6 +48,7 @@ export const initChannels = () => {
 export const loadChannels = () => {
     getChannels()
         .then(data => {
+            allChannels = data.channels; // Store for non-member access
             renderChannelList(data.channels);
         })
         .catch(error => {
@@ -172,15 +174,36 @@ export const selectChannel = (channelId) => {
  * @param {number} channelId - Channel ID
  */
 const loadChannelDetails = (channelId) => {
-    getChannelDetails(channelId)
-        .then(data => {
-            currentChannelData = data;
-            renderChannelDetails(data);
-        })
-        .catch(error => {
-            // Error already displayed by api.js
-            console.error('Failed to load channel details:', error);
-        });
+    const userId = getUserId();
+
+    // Find channel in allChannels list
+    const channelBasicInfo = allChannels.find(ch => ch.id === channelId);
+
+    if (!channelBasicInfo) {
+        showError('Channel not found');
+        return;
+    }
+
+    // Check if user is a member
+    const isMember = channelBasicInfo.members.includes(userId);
+
+    if (isMember) {
+        // User is member - fetch full details from API
+        getChannelDetails(channelId)
+            .then(data => {
+                currentChannelData = data;
+                renderChannelDetails(data);
+            })
+            .catch(error => {
+                // Error already displayed by api.js
+                console.error('Failed to load channel details:', error);
+            });
+    } else {
+        // User is NOT member - use basic info and show join button
+        // We don't have full details, so use what we have from the list
+        currentChannelData = channelBasicInfo;
+        renderChannelDetails(channelBasicInfo);
+    }
 };
 
 /**
@@ -264,44 +287,42 @@ const renderChannelDetails = (channelData) => {
         typeP.appendChild(typeText);
         infoSection.appendChild(typeP);
 
-        // Created time
-        const timeLabel = document.createElement('strong');
-        timeLabel.textContent = 'Created: ';
-        const timeText = document.createElement('span');
-        timeText.textContent = formatTimestamp(channelData.createdAt);
+        // Created time (only if available)
+        if (channelData.createdAt) {
+            const timeLabel = document.createElement('strong');
+            timeLabel.textContent = 'Created: ';
+            const timeText = document.createElement('span');
+            timeText.textContent = formatTimestamp(channelData.createdAt);
 
-        const timeP = document.createElement('p');
-        timeP.appendChild(timeLabel);
-        timeP.appendChild(timeText);
-        infoSection.appendChild(timeP);
+            const timeP = document.createElement('p');
+            timeP.appendChild(timeLabel);
+            timeP.appendChild(timeText);
+            infoSection.appendChild(timeP);
+        }
 
-        // // Creator (Note: API doesn't return creator name, only ID)
-        // const creatorLabel = document.createElement('strong');
-        // creatorLabel.textContent = 'Creator ID: ';
-        // const creatorText = document.createElement('span');
-        // creatorText.textContent = channelData.creator;
-
-        // const creatorP = document.createElement('p');
-        // creatorP.appendChild(creatorLabel);
-        // creatorP.appendChild(creatorText);
-        // infoSection.appendChild(creatorP);
-
-        // container.appendChild(infoSection);
-
-
-        // ...
+        // Creator (fetch name from API)
         const creatorRow = document.createElement('p');
-        const creatorLabel = document.createElement('strong'); 
+        const creatorLabel = document.createElement('strong');
         creatorLabel.textContent = 'Creator: ';
-        const creatorName = document.createElement('span'); 
-        creatorName.textContent = `#${channelData.creator}`; // fallback
-        creatorRow.appendChild(creatorLabel); 
+        const creatorName = document.createElement('span');
+        creatorName.textContent = `User #${channelData.creator}`; // fallback
+        creatorRow.appendChild(creatorLabel);
         creatorRow.appendChild(creatorName);
         infoSection.appendChild(creatorRow);
-        getUserProfile(channelData.creator)
-        .then(u => { if (u && u.name) creatorName.textContent = u.name; })
-        .catch(() => {}); // 错了就保留 ID 兜底
 
+        // Append info section to container
+        container.appendChild(infoSection);
+
+        // Fetch creator name asynchronously
+        getUserProfile(channelData.creator)
+            .then(userData => {
+                if (userData && userData.name) {
+                    creatorName.textContent = userData.name;
+                }
+            })
+            .catch(() => {
+                // Keep fallback ID if fetch fails
+            });
     }
 };
 
