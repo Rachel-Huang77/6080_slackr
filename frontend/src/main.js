@@ -16,6 +16,7 @@ import {
     getUserId,
     clearUserId
 } from './helpers.js';
+import { initChannels } from './channels.js';
 
 console.log('Slackr application started!');
 
@@ -32,14 +33,16 @@ const showAuthScreen = () => {
 };
 
 /**
- * Show the dashboard screen
+ * Show the dashboard screen and initialize channel functionality
  */
 const showDashboard = () => {
     document.getElementById('auth-container').style.display = 'none';
     document.getElementById('dashboard-container').style.display = 'block';
 
-    // TODO: Load channels and user data
-    console.log('Dashboard loaded');
+    // Initialize channel module (M2.2.1, 2.2.2, 2.2.3)
+    initChannels();
+
+    console.log('Dashboard loaded with channels');
 };
 
 /**
