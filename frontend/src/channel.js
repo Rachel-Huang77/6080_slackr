@@ -10,10 +10,10 @@ import {
     getChannelDetails,
     updateChannel,
     joinChannel,
-    leaveChannel
+    leaveChannel,
+    getUserProfile
 } from './api.js';
-import { getUserId, showError } from './helpers.js';
-import { formatTimestamp } from './helpers.js';
+import { getUserId, showError, formatTimestamp } from './helpers.js';
 
 // Current selected channel state
 let currentChannelId = null;
@@ -275,18 +275,33 @@ const renderChannelDetails = (channelData) => {
         timeP.appendChild(timeText);
         infoSection.appendChild(timeP);
 
-        // Creator (Note: API doesn't return creator name, only ID)
-        const creatorLabel = document.createElement('strong');
-        creatorLabel.textContent = 'Creator ID: ';
-        const creatorText = document.createElement('span');
-        creatorText.textContent = channelData.creator;
+        // // Creator (Note: API doesn't return creator name, only ID)
+        // const creatorLabel = document.createElement('strong');
+        // creatorLabel.textContent = 'Creator ID: ';
+        // const creatorText = document.createElement('span');
+        // creatorText.textContent = channelData.creator;
 
-        const creatorP = document.createElement('p');
-        creatorP.appendChild(creatorLabel);
-        creatorP.appendChild(creatorText);
-        infoSection.appendChild(creatorP);
+        // const creatorP = document.createElement('p');
+        // creatorP.appendChild(creatorLabel);
+        // creatorP.appendChild(creatorText);
+        // infoSection.appendChild(creatorP);
 
-        container.appendChild(infoSection);
+        // container.appendChild(infoSection);
+
+
+        // ...
+        const creatorRow = document.createElement('p');
+        const creatorLabel = document.createElement('strong'); 
+        creatorLabel.textContent = 'Creator: ';
+        const creatorName = document.createElement('span'); 
+        creatorName.textContent = `#${channelData.creator}`; // fallback
+        creatorRow.appendChild(creatorLabel); 
+        creatorRow.appendChild(creatorName);
+        infoSection.appendChild(creatorRow);
+        getUserProfile(channelData.creator)
+        .then(u => { if (u && u.name) creatorName.textContent = u.name; })
+        .catch(() => {}); // 错了就保留 ID 兜底
+
     }
 };
 

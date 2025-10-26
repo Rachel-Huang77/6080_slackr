@@ -8,15 +8,18 @@ import {
     fileToDataUrl,
     showError,
     hideError,
+    showNotice,
+    hideNotice,
     formatTimestamp,
     setToken,
     getToken,
+    isValidToken,
     clearToken,
     setUserId,
     getUserId,
     clearUserId
 } from './helpers.js';
-import { initChannels } from './channels.js';
+import { initChannels } from './channel.js';
 
 console.log('Slackr application started!');
 
@@ -77,17 +80,17 @@ const handleLogin = (event) => {
     .then(data => {
         if (data.error) {
             showError(data.error);
-        } else {
-            // Store token and user ID
-            setToken(data.token);
-            setUserId(data.userId);
-
-            // Show dashboard
-            showDashboard();
+            return Promise.reject(new Error(data.error));
         }
+        // Store token and user ID
+        setToken(data.token);
+        setUserId(data.userId);
+
+        // Show dashboard
+        showDashboard();
+        showNotice('Login successful!');
     })
     .catch(error => {
-        showError('Failed to login. Please try again.');
         console.error('Login error:', error);
     });
 };
@@ -140,17 +143,17 @@ const handleRegister = (event) => {
     .then(data => {
         if (data.error) {
             showError(data.error);
-        } else {
-            // Store token and user ID
-            setToken(data.token);
-            setUserId(data.userId);
-
-            // Show dashboard
-            showDashboard();
+            return Promise.reject(new Error(data.error));
         }
+        // Store token and user ID
+        setToken(data.token);
+        setUserId(data.userId);
+
+        // Show dashboard
+        showDashboard();
+        showNotice('Registered successfully!');
     })
     .catch(error => {
-        showError('Failed to register. Please try again.');
         console.error('Register error:', error);
     });
 };
@@ -225,6 +228,10 @@ const setupEventListeners = () => {
     const errorClose = document.getElementById('error-close');
     errorClose.addEventListener('click', hideError);
 
+    // Notice popup close listener
+    const noticeClose = document.getElementById('notice-close');
+    noticeClose.addEventListener('click', hideNotice);
+
     // Logout listener
     const logoutButton = document.getElementById('logout-button');
     logoutButton.addEventListener('click', handleLogout);
@@ -234,15 +241,44 @@ const setupEventListeners = () => {
  * Initialize the application - entry point
  */
 const init = () => {
-    // Check if user is already logged in
+    // Set up event listeners first
+    setupEventListeners();
+
+    // Check if user is already logged in with valid token
     const token = getToken();
-    if (token) {
-        showDashboard();
+
+    if (isValidToken(token)) {
+        // Verify token with backend by making an API call
+        fetch(`${BACKEND_URL}/channel`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Token is valid, user is authenticated
+                showDashboard();
+            } else {
+                // Token is invalid (401/403), clear and show login
+                clearToken();
+                clearUserId();
+                showAuthScreen();
+            }
+        })
+        .catch(error => {
+            // Network error or token invalid, clear and show login
+            console.error('Token validation error:', error);
+            clearToken();
+            clearUserId();
+            showAuthScreen();
+        });
     } else {
+        // No valid token, clear any invalid tokens and show login
+        clearToken();
+        clearUserId();
         showAuthScreen();
     }
-
-    setupEventListeners();
 };
 
 // Initialize the app when DOM is ready

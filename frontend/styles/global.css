@@ -354,6 +354,12 @@ button:hover {
     max-width: 400px;
 }
 
+/* notice-popup */
+/* css styles/global.css：沿用 modal 样式，无需新建很多规则 */
+#notice-popup { display: none; }
+#notice-popup.show { display: flex; }
+
+
 .close-button {
     position: absolute;
     top: var(--spacing-sm);
@@ -423,3 +429,7 @@ button:hover {
         padding: var(--spacing-md);
     }
 }
+
+/* css styles/global.css 追加 */
+@media (max-width: 1280px) { .content-area { padding: var(--spacing-md); } }
+@media (max-width: 1024px) { .sidebar { max-width: 240px; } }

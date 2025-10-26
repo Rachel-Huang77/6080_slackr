@@ -15,6 +15,10 @@ import { getToken, showError } from './helpers.js';
  * @param {boolean} requireAuth - Whether to include Authorization header
  * @return {Promise<any>} Promise resolving to response data
  */
+
+// javascript src/api.js 追加
+export const getUserProfile = (userId) => apiCall(`/user/${userId}`, 'GET');
+
 export const apiCall = (path, method = 'GET', body = null, requireAuth = true) => {
     const headers = {
         'Content-Type': 'application/json',

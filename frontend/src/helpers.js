@@ -59,6 +59,40 @@ export const hideError = () => {
 };
 
 /**
+ * Check if token is valid (not null, undefined, or string 'null'/'undefined')
+ * @param {string} token - Token to validate
+ * @return {boolean} True if token is valid
+ */
+export const isValidToken = (token) => {
+    return token &&
+           token !== 'null' &&
+           token !== 'undefined' &&
+           token.trim() !== '';
+};
+
+/**
+ * Show a success notice popup to the user
+ * Uses #notice-popup and #notice-body DOM elements
+ * @param {string} message - The success message to display
+ */
+export const showNotice = (message) => {
+    const noticePopup = document.getElementById('notice-popup');
+    const noticeBody = document.getElementById('notice-body');
+
+    noticeBody.textContent = message;
+    noticePopup.style.display = 'flex';
+};
+
+/**
+ * Hide the notice popup
+ * Hides #notice-popup DOM element
+ */
+export const hideNotice = () => {
+    const noticePopup = document.getElementById('notice-popup');
+    noticePopup.style.display = 'none';
+};
+
+/**
  * Format ISO timestamp to readable date/time string
  * Returns friendly format like "2 hours ago" or "Jan 15, 2025"
  * @param {string} isoString - ISO 8601 timestamp
@@ -108,8 +142,10 @@ export const setToken = (token) => {
  * Retrieve authentication token from localStorage
  * @return {string|null} The authentication token or null if not found
  */
+// javascript src/helpers.js（若已有 getToken，则替换为更安全版本）
 export const getToken = () => {
-    return localStorage.getItem('slackr-token');
+  const raw = localStorage.getItem('slackr-token');
+  return isValidToken(raw) ? raw : null;
 };
 
 /**
