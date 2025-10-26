@@ -50,6 +50,7 @@ export const loadChannels = () => {
             renderChannelList(data.channels);
         })
         .catch(error => {
+            // Error already displayed by api.js
             console.error('Failed to load channels:', error);
         });
 };
@@ -177,6 +178,7 @@ const loadChannelDetails = (channelId) => {
             renderChannelDetails(data);
         })
         .catch(error => {
+            // Error already displayed by api.js
             console.error('Failed to load channel details:', error);
         });
 };
@@ -336,6 +338,7 @@ const handleCreateChannel = (event) => {
             selectChannel(data.channelId); // Select the new channel
         })
         .catch(error => {
+            // Error already displayed by api.js
             console.error('Failed to create channel:', error);
         });
 };
@@ -391,6 +394,7 @@ const showEditChannelModal = (channelData) => {
                 loadChannels();
             })
             .catch(error => {
+                // Error already displayed by api.js
                 console.error('Failed to update channel:', error);
             });
     });
@@ -416,6 +420,7 @@ const handleJoinChannel = (channelId) => {
             loadChannels();
         })
         .catch(error => {
+            // Error already displayed by api.js
             console.error('Failed to join channel:', error);
         });
 };
@@ -437,6 +442,7 @@ const handleLeaveChannel = (channelId) => {
             loadChannels();
         })
         .catch(error => {
+            // Error already displayed by api.js
             console.error('Failed to leave channel:', error);
         });
 };

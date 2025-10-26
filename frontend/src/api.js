@@ -46,21 +46,40 @@ export const apiCall = (path, method = 'GET', body = null, requireAuth = true) =
     }
 
     return fetch(url, config)
-        .then(response => response.json())
+        .then(response => {
+            // Check if response is ok (status 200-299)
+            if (!response.ok) {
+                // For non-2xx responses, try to parse error message
+                return response.json()
+                    .then(data => {
+                        showError(data.error || `HTTP Error: ${response.status}`);
+                        return Promise.reject(data.error || `HTTP ${response.status}`);
+                    })
+                    .catch(() => {
+                        showError(`HTTP Error: ${response.status}`);
+                        return Promise.reject(`HTTP ${response.status}`);
+                    });
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.error) {
+            // Check for API-level errors in successful responses
+            if (data && data.error) {
                 showError(data.error);
                 return Promise.reject(data.error);
             }
             return data;
         })
         .catch(error => {
-            console.error(`API Error [${method} ${path}]:`, error);
-            if (typeof error === 'string') {
-                // Already handled by showError above
-                return Promise.reject(error);
+            // Only handle network errors here (fetch failures)
+            // API errors are already handled above
+            if (error instanceof TypeError || error.message === 'Failed to fetch') {
+                console.error(`Network Error [${method} ${path}]:`, error);
+                showError('Network error. Please check your connection and try again.');
+                return Promise.reject('Network error');
             }
-            showError('Network error. Please check your connection.');
+            // Re-throw API errors without additional handling
+            console.error(`API Error [${method} ${path}]:`, error);
             return Promise.reject(error);
         });
 };

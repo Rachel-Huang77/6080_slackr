@@ -52,8 +52,18 @@ const showDashboard = () => {
 const handleLogin = (event) => {
     event.preventDefault();
 
-    const email = document.getElementById('login-email').value;
+    const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
+
+    // Validate input
+    if (!email) {
+        showError('Email is required');
+        return;
+    }
+    if (!password) {
+        showError('Password is required');
+        return;
+    }
 
     // Make API call to login using Promise chain
     fetch(`${BACKEND_URL}/auth/login`, {
@@ -89,10 +99,28 @@ const handleLogin = (event) => {
 const handleRegister = (event) => {
     event.preventDefault();
 
-    const email = document.getElementById('register-email').value;
-    const name = document.getElementById('register-name').value;
+    const email = document.getElementById('register-email').value.trim();
+    const name = document.getElementById('register-name').value.trim();
     const password = document.getElementById('register-password').value;
     const confirmPassword = document.getElementById('register-password-confirm').value;
+
+    // Validate required fields
+    if (!email) {
+        showError('Email is required');
+        return;
+    }
+    if (!name) {
+        showError('Name is required');
+        return;
+    }
+    if (!password) {
+        showError('Password is required');
+        return;
+    }
+    if (!confirmPassword) {
+        showError('Password confirmation is required');
+        return;
+    }
 
     // Validate passwords match
     if (password !== confirmPassword) {

@@ -20,7 +20,7 @@
       <!-- Login Form -->
       <div id="login-container">
         <h1>Welcome to Slackr</h1>
-        <form id="login-form">
+        <form id="login-form" novalidate>
           <div class="form-group">
             <label for="login-email">Email</label>
             <input type="email" id="login-email" required placeholder="Enter your email">
@@ -37,7 +37,7 @@
       <!-- Register Form (hidden by default) -->
       <div id="register-container" style="display: none;">
         <h1>Register for Slackr</h1>
-        <form id="register-form">
+        <form id="register-form" novalidate>
           <div class="form-group">
             <label for="register-email">Email</label>
             <input type="email" id="register-email" required placeholder="Enter your email">
@@ -105,7 +105,7 @@
     <div id="create-channel-container" class="modal" style="display: none;">
       <div class="modal-content">
         <h2>Create New Channel</h2>
-        <form id="create-channel-form">
+        <form id="create-channel-form" novalidate>
           <div class="form-group">
             <label for="create-channel-name">Channel Name</label>
             <input type="text" id="create-channel-name" required placeholder="Enter channel name">
@@ -151,7 +151,7 @@
     <div id="own-profile-container" class="modal" style="display: none;">
       <div class="modal-content">
         <h2>My Profile</h2>
-        <form id="own-profile-form">
+        <form id="own-profile-form" novalidate>
           <div class="form-group">
             <label for="own-profile-image-input">Profile Photo</label>
             <input type="file" id="own-profile-image-input" accept="image/*">
