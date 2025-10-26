@@ -11,9 +11,11 @@ import {
     updateChannel,
     joinChannel,
     leaveChannel,
-    getUserProfile
+    getUserProfile,
+    sendMessage,
+    getMessages
 } from './api.js';
-import { getUserId, showError, formatTimestamp } from './helpers.js';
+import { getUserId, showError, showNotice, formatTimestamp } from './helpers.js';
 
 // Current selected channel state
 let currentChannelId = null;
@@ -41,21 +43,37 @@ export const initChannels = () => {
     // Set up cancel button
     const cancelBtn = document.getElementById('create-channel-cancel');
     cancelBtn.addEventListener('click', hideCreateChannelModal);
+
+    // Set up message send button
+    const sendBtn = document.getElementById('message-send-button');
+    sendBtn.addEventListener('click', handleSendMessage);
+
+    // Set up message input (send on Enter key)
+    const messageInput = document.getElementById('message-input');
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    });
 };
 
 /**
  * Load and display all channels (public + joined private)
  * Implements 2.2.1 - Viewing a list of channels
+ * @return {Promise} Promise that resolves when channels are loaded
  */
 export const loadChannels = () => {
-    getChannels()
+    return getChannels()
         .then(data => {
             allChannels = data.channels; // Store for non-member access
             renderChannelList(data.channels);
+            return data.channels; // Return channels for chaining
         })
         .catch(error => {
             // Error already displayed by api.js
             console.error('Failed to load channels:', error);
+            throw error; // Re-throw for caller to handle
         });
 };
 
@@ -163,11 +181,15 @@ export const selectChannel = (channelId) => {
     document.getElementById('welcome-screen').style.display = 'none';
     document.getElementById('channel-view').style.display = 'flex';
 
-    // Load channel details
-    loadChannelDetails(channelId);
-
-    // Reload channel list to update active state
-    loadChannels();
+    // Reload channel list first to ensure allChannels is up-to-date
+    // Then load channel details (which depends on allChannels)
+    loadChannels()
+        .then(() => {
+            loadChannelDetails(channelId);
+        })
+        .catch(error => {
+            console.error('Failed to load channels before selecting:', error);
+        });
 };
 
 /**
@@ -197,6 +219,8 @@ const loadChannelDetails = (channelId) => {
                 data.id = channelId;
                 currentChannelData = data;
                 renderChannelDetails(data);
+                // Load messages for this channel
+                loadMessages();
             })
             .catch(error => {
                 // Error already displayed by api.js
@@ -207,6 +231,8 @@ const loadChannelDetails = (channelId) => {
         // channelBasicInfo already has 'id' field from GET /channel list
         currentChannelData = channelBasicInfo;
         renderChannelDetails(channelBasicInfo);
+        // Clear messages container (non-members can't see messages)
+        document.getElementById('messages-container').textContent = '';
     }
 };
 
@@ -399,8 +425,11 @@ const handleCreateChannel = (event) => {
         updateChannel(editingChannelId, name, description)
             .then(() => {
                 hideCreateChannelModal();
+                // Wait for channels to load before loading details
+                return loadChannels();
+            })
+            .then(() => {
                 loadChannelDetails(editingChannelId);
-                loadChannels();
             })
             .catch(error => {
                 console.error('Failed to update channel:', error);
@@ -455,8 +484,11 @@ const showEditChannelModal = (channelData) => {
 const handleJoinChannel = (channelId) => {
     joinChannel(channelId)
         .then(() => {
+            // Wait for channels to load before loading details
+            return loadChannels();
+        })
+        .then(() => {
             loadChannelDetails(channelId);
-            loadChannels();
         })
         .catch(error => {
             // Error already displayed by api.js
@@ -491,3 +523,113 @@ const handleLeaveChannel = (channelId) => {
  * @return {number|null} Current channel ID or null
  */
 export const getCurrentChannelId = () => currentChannelId;
+
+/**
+ * Load and display messages for current channel
+ */
+const loadMessages = () => {
+    if (!currentChannelId) {
+        return;
+    }
+
+    getMessages(currentChannelId, 0)
+        .then(data => {
+            renderMessages(data.messages);
+        })
+        .catch(error => {
+            console.error('Failed to load messages:', error);
+        });
+};
+
+/**
+ * Render messages in the messages container
+ * @param {Array} messages - Array of message objects
+ */
+const renderMessages = (messages) => {
+    const container = document.getElementById('messages-container');
+    container.textContent = '';
+
+    if (!messages || messages.length === 0) {
+        const emptyMsg = document.createElement('p');
+        emptyMsg.textContent = 'No messages yet. Start the conversation!';
+        emptyMsg.className = 'empty-message';
+        container.appendChild(emptyMsg);
+        return;
+    }
+
+    // Messages are returned newest first, display them in reverse (oldest first)
+    const reversedMessages = [...messages].reverse();
+
+    reversedMessages.forEach(msg => {
+        const messageEl = document.createElement('div');
+        messageEl.className = 'message';
+
+        // Message sender and time
+        const header = document.createElement('div');
+        header.className = 'message-header';
+
+        const sender = document.createElement('strong');
+        sender.textContent = `User #${msg.sender}`;
+        header.appendChild(sender);
+
+        const time = document.createElement('span');
+        time.className = 'message-time';
+        time.textContent = formatTimestamp(msg.sentAt);
+        header.appendChild(time);
+
+        messageEl.appendChild(header);
+
+        // Message content
+        if (msg.message) {
+            const content = document.createElement('p');
+            content.className = 'message-content';
+            content.textContent = msg.message;
+            messageEl.appendChild(content);
+        }
+
+        // Message image
+        if (msg.image) {
+            const img = document.createElement('img');
+            img.src = msg.image;
+            img.alt = 'Message image';
+            img.className = 'message-image';
+            messageEl.appendChild(img);
+        }
+
+        container.appendChild(messageEl);
+    });
+
+    // Scroll to bottom
+    container.scrollTop = container.scrollHeight;
+};
+
+/**
+ * Handle sending a message
+ */
+const handleSendMessage = () => {
+    if (!currentChannelId) {
+        showError('No channel selected');
+        return;
+    }
+
+    const messageInput = document.getElementById('message-input');
+    const messageText = messageInput.value.trim();
+
+    if (!messageText) {
+        showError('Message cannot be empty');
+        return;
+    }
+
+    // Send message
+    sendMessage(currentChannelId, messageText)
+        .then(() => {
+            // Clear input
+            messageInput.value = '';
+
+            // Reload messages
+            loadMessages();
+        })
+        .catch(error => {
+            console.error('Failed to send message:', error);
+        });
+};
