@@ -14,6 +14,7 @@ import {
     getUserProfile
 } from './api.js';
 import { getUserId, showError, formatTimestamp } from './helpers.js';
+import { loadMessages, handleSendMessage, showPinnedMessages } from './channel_messages.js';
 
 // Current selected channel state
 let currentChannelId = null;
@@ -41,6 +42,19 @@ export const initChannels = () => {
     // Set up cancel button
     const cancelBtn = document.getElementById('create-channel-cancel');
     cancelBtn.addEventListener('click', hideCreateChannelModal);
+
+    // Set up message send button (Milestone 2.3.3)
+    const sendBtn = document.getElementById('message-send-button');
+    sendBtn.addEventListener('click', () => handleSendMessage(currentChannelId));
+
+    // Set up Enter key for message input
+    const messageInput = document.getElementById('message-input');
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage(currentChannelId);
+        }
+    });
 };
 
 /**
@@ -197,6 +211,8 @@ const loadChannelDetails = (channelId) => {
                 data.id = channelId;
                 currentChannelData = data;
                 renderChannelDetails(data);
+                // Load messages for this channel (Milestone 2.3.1)
+                loadMessages(channelId);
             })
             .catch(error => {
                 // Error already displayed by api.js
@@ -207,6 +223,8 @@ const loadChannelDetails = (channelId) => {
         // channelBasicInfo already has 'id' field from GET /channel list
         currentChannelData = channelBasicInfo;
         renderChannelDetails(channelBasicInfo);
+        // Clear messages container for non-members
+        document.getElementById('messages-container').textContent = '';
     }
 };
 
@@ -243,6 +261,13 @@ const renderChannelDetails = (channelData) => {
         editBtn.className = 'btn-secondary';
         editBtn.addEventListener('click', () => showEditChannelModal(channelData));
         actions.appendChild(editBtn);
+
+        // View pinned messages button (Milestone 2.3.7)
+        const pinnedBtn = document.createElement('button');
+        pinnedBtn.textContent = 'View Pinned';
+        pinnedBtn.className = 'btn-secondary';
+        pinnedBtn.addEventListener('click', () => showPinnedMessages(channelData.id));
+        actions.appendChild(pinnedBtn);
 
         // Leave button (for non-creators)
         if (!isCreator) {

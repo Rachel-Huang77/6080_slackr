@@ -150,3 +150,88 @@ export const joinChannel = (channelId) => {
 export const leaveChannel = (channelId) => {
     return apiCall(`/channel/${channelId}/leave`, 'POST');
 };
+
+/**
+ * Get messages from a channel
+ * @param {number} channelId - Channel ID
+ * @param {number} start - Starting index for pagination
+ * @return {Promise<object>} Promise resolving to { messages: [...] }
+ */
+export const getMessages = (channelId, start = 0) => {
+    return apiCall(`/message/${channelId}?start=${start}`, 'GET');
+};
+
+/**
+ * Send a message to a channel
+ * @param {number} channelId - Channel ID
+ * @param {string} message - Message text
+ * @param {string|null} image - Optional image data URL
+ * @return {Promise<object>} Promise resolving to success response
+ */
+export const sendMessage = (channelId, message, image = null) => {
+    return apiCall(`/message/${channelId}`, 'POST', { message, image });
+};
+
+/**
+ * Edit a message
+ * @param {number} channelId - Channel ID
+ * @param {number} messageId - Message ID
+ * @param {string} message - New message text
+ * @param {string|null} image - Optional new image data URL
+ * @return {Promise<object>} Promise resolving to success response
+ */
+export const editMessage = (channelId, messageId, message, image = null) => {
+    return apiCall(`/message/${channelId}/${messageId}`, 'PUT', { message, image });
+};
+
+/**
+ * Delete a message
+ * @param {number} channelId - Channel ID
+ * @param {number} messageId - Message ID
+ * @return {Promise<object>} Promise resolving to success response
+ */
+export const deleteMessage = (channelId, messageId) => {
+    return apiCall(`/message/${channelId}/${messageId}`, 'DELETE');
+};
+
+/**
+ * Pin a message
+ * @param {number} channelId - Channel ID
+ * @param {number} messageId - Message ID
+ * @return {Promise<object>} Promise resolving to success response
+ */
+export const pinMessage = (channelId, messageId) => {
+    return apiCall(`/message/pin/${channelId}/${messageId}`, 'POST');
+};
+
+/**
+ * Unpin a message
+ * @param {number} channelId - Channel ID
+ * @param {number} messageId - Message ID
+ * @return {Promise<object>} Promise resolving to success response
+ */
+export const unpinMessage = (channelId, messageId) => {
+    return apiCall(`/message/unpin/${channelId}/${messageId}`, 'POST');
+};
+
+/**
+ * React to a message
+ * @param {number} channelId - Channel ID
+ * @param {number} messageId - Message ID
+ * @param {string} react - Emoji reaction
+ * @return {Promise<object>} Promise resolving to success response
+ */
+export const reactMessage = (channelId, messageId, react) => {
+    return apiCall(`/message/react/${channelId}/${messageId}`, 'POST', { react });
+};
+
+/**
+ * Remove a reaction from a message
+ * @param {number} channelId - Channel ID
+ * @param {number} messageId - Message ID
+ * @param {string} react - Emoji reaction to remove
+ * @return {Promise<object>} Promise resolving to success response
+ */
+export const unreactMessage = (channelId, messageId, react) => {
+    return apiCall(`/message/unreact/${channelId}/${messageId}`, 'POST', { react });
+};
