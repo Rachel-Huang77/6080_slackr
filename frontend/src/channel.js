@@ -19,6 +19,8 @@ import { getUserId, showError, formatTimestamp } from './helpers.js';
 let currentChannelId = null;
 let currentChannelData = null;
 let allChannels = []; // Store all channels list for non-member access
+let isEditMode = false; // Track if create channel modal is in edit mode
+let editingChannelId = null; // Store the channel ID being edited
 
 /**
  * Initialize channel functionality
@@ -191,6 +193,8 @@ const loadChannelDetails = (channelId) => {
         // User is member - fetch full details from API
         getChannelDetails(channelId)
             .then(data => {
+                // IMPORTANT: API doesn't return 'id' field, we need to add it manually
+                data.id = channelId;
                 currentChannelData = data;
                 renderChannelDetails(data);
             })
@@ -200,7 +204,7 @@ const loadChannelDetails = (channelId) => {
             });
     } else {
         // User is NOT member - use basic info and show join button
-        // We don't have full details, so use what we have from the list
+        // channelBasicInfo already has 'id' field from GET /channel list
         currentChannelData = channelBasicInfo;
         renderChannelDetails(channelBasicInfo);
     }
@@ -331,25 +335,50 @@ const renderChannelDetails = (channelData) => {
  * Implements 2.2.2 - Creating a new channel
  */
 const showCreateChannelModal = () => {
-    const modal = document.getElementById('create-channel-container');
-    modal.style.display = 'flex';
+    // Reset edit mode flags
+    isEditMode = false;
+    editingChannelId = null;
 
-    // Clear form
+    // Update modal UI
+    const modal = document.getElementById('create-channel-container');
+    const modalTitle = modal.querySelector('h2');
+    const submitBtn = document.getElementById('create-channel-submit');
+
+    modalTitle.textContent = 'Create New Channel';
+    submitBtn.textContent = 'Create';
+
+    // Clear and enable form
     document.getElementById('create-channel-name').value = '';
     document.getElementById('create-channel-description').value = '';
     document.getElementById('create-channel-is-private').checked = false;
+    document.getElementById('create-channel-is-private').disabled = false;
+
+    // Show modal
+    modal.style.display = 'flex';
 };
 
 /**
- * Hide create channel modal
+ * Hide create channel modal and reset edit mode
  */
 const hideCreateChannelModal = () => {
     const modal = document.getElementById('create-channel-container');
     modal.style.display = 'none';
+
+    // Reset edit mode flags
+    isEditMode = false;
+    editingChannelId = null;
+
+    // Reset modal UI
+    const modalTitle = modal.querySelector('h2');
+    const submitBtn = document.getElementById('create-channel-submit');
+    modalTitle.textContent = 'Create New Channel';
+    submitBtn.textContent = 'Create';
+    document.getElementById('create-channel-is-private').disabled = false;
 };
 
 /**
- * Handle create channel form submission
+ * Handle create/edit channel form submission
+ * Uses isEditMode flag to determine whether to create or update
  * @param {Event} event - Form submit event
  */
 const handleCreateChannel = (event) => {
@@ -365,84 +394,58 @@ const handleCreateChannel = (event) => {
         return;
     }
 
-    // Create channel via API
-    createChannel(name, description, isPrivate)
-        .then(data => {
-            console.log('Channel created:', data.channelId);
-            hideCreateChannelModal();
-            loadChannels(); // Refresh channel list
-            selectChannel(data.channelId); // Select the new channel
-        })
-        .catch(error => {
-            // Error already displayed by api.js
-            console.error('Failed to create channel:', error);
-        });
+    if (isEditMode && editingChannelId) {
+        // Update existing channel
+        updateChannel(editingChannelId, name, description)
+            .then(() => {
+                hideCreateChannelModal();
+                loadChannelDetails(editingChannelId);
+                loadChannels();
+            })
+            .catch(error => {
+                console.error('Failed to update channel:', error);
+            });
+    } else {
+        // Create new channel
+        createChannel(name, description, isPrivate)
+            .then(data => {
+                console.log('Channel created:', data.channelId);
+                hideCreateChannelModal();
+                loadChannels();
+                selectChannel(data.channelId);
+            })
+            .catch(error => {
+                console.error('Failed to create channel:', error);
+            });
+    }
 };
 
 /**
  * Show edit channel modal
+ * Reuses create channel modal but sets edit mode flag
  * @param {object} channelData - Current channel data
  */
 const showEditChannelModal = (channelData) => {
-    // Reuse create channel modal for editing
+    // Set edit mode flags
+    isEditMode = true;
+    editingChannelId = channelData.id;
+
+    // Update modal UI
     const modal = document.getElementById('create-channel-container');
     const modalTitle = modal.querySelector('h2');
     const submitBtn = document.getElementById('create-channel-submit');
 
-    // Change modal title and button text
     modalTitle.textContent = 'Edit Channel';
     submitBtn.textContent = 'Save Changes';
 
     // Populate form with current values
     document.getElementById('create-channel-name').value = channelData.name;
-    document.getElementById('create-channel-description').value = channelData.description;
+    document.getElementById('create-channel-description').value = channelData.description || '';
     document.getElementById('create-channel-is-private').checked = channelData.private;
     document.getElementById('create-channel-is-private').disabled = true; // Can't change privacy
 
+    // Show modal
     modal.style.display = 'flex';
-
-    // Replace submit handler temporarily
-    const form = document.getElementById('create-channel-form');
-    const newForm = form.cloneNode(true);
-    form.parentNode.replaceChild(newForm, form);
-
-    newForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const newName = document.getElementById('create-channel-name').value.trim();
-        const newDescription = document.getElementById('create-channel-description').value.trim();
-
-        updateChannel(channelData.id, newName, newDescription)
-            .then(() => {
-                modal.style.display = 'none';
-                // Reset modal
-                modalTitle.textContent = 'Create New Channel';
-                submitBtn.textContent = 'Create';
-                document.getElementById('create-channel-is-private').disabled = false;
-
-                // Restore original submit handler
-                const originalForm = newForm.cloneNode(true);
-                newForm.parentNode.replaceChild(originalForm, newForm);
-                originalForm.addEventListener('submit', handleCreateChannel);
-                document.getElementById('create-channel-cancel').addEventListener('click', hideCreateChannelModal);
-
-                // Reload channel details
-                loadChannelDetails(channelData.id);
-                loadChannels();
-            })
-            .catch(error => {
-                // Error already displayed by api.js
-                console.error('Failed to update channel:', error);
-            });
-    });
-
-    // Update cancel button
-    const cancelBtn = newForm.querySelector('#create-channel-cancel');
-    cancelBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-        modalTitle.textContent = 'Create New Channel';
-        submitBtn.textContent = 'Create';
-        document.getElementById('create-channel-is-private').disabled = false;
-    });
 };
 
 /**
