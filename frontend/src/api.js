@@ -16,7 +16,6 @@ import { getToken, showError } from './helpers.js';
  * @return {Promise<any>} Promise resolving to response data
  */
 
-// javascript src/api.js 追加
 export const getUserProfile = (userId) => apiCall(`/user/${userId}`, 'GET');
 
 export const apiCall = (path, method = 'GET', body = null, requireAuth = true) => {
@@ -150,28 +149,4 @@ export const joinChannel = (channelId) => {
  */
 export const leaveChannel = (channelId) => {
     return apiCall(`/channel/${channelId}/leave`, 'POST');
-};
-
-/**
- * Send a message to a channel
- * @param {number} channelId - Channel ID
- * @param {string} message - Message text
- * @param {string|null} image - Optional image data URL
- * @return {Promise<object>} Promise resolving to success response
- */
-export const sendMessage = (channelId, message, image = null) => {
-    return apiCall(`/message/${channelId}`, 'POST', {
-        message,
-        image
-    });
-};
-
-/**
- * Get messages from a channel
- * @param {number} channelId - Channel ID
- * @param {number} start - Starting index (for pagination)
- * @return {Promise<object>} Promise resolving to { messages: [...] }
- */
-export const getMessages = (channelId, start = 0) => {
-    return apiCall(`/message/${channelId}?start=${start}`, 'GET');
 };
