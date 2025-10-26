@@ -270,7 +270,7 @@ const renderChannelDetails = (channelData) => {
 
         const timeP = document.createElement('p');
         timeP.appendChild(timeLabel);
-        typeP.appendChild(timeText);
+        timeP.appendChild(timeText);
         infoSection.appendChild(timeP);
 
         // Creator (Note: API doesn't return creator name, only ID)
