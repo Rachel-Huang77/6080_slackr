@@ -62,6 +62,11 @@ export const initChannels = () => {
         imageInput.click();
     });
 
+    // Set up image preview when file is selected
+    imageInput.addEventListener('change', () => {
+        showImagePreview();
+    });
+
     // Set up Enter key for message input
     const messageInput = document.getElementById('message-input');
     messageInput.addEventListener('keypress', (e) => {
@@ -465,8 +470,14 @@ const handleCreateChannel = (event) => {
             .then(data => {
                 console.log('Channel created:', data.channelId);
                 hideCreateChannelModal();
-                loadChannels();
-                selectChannel(data.channelId);
+                // Wait for channels to load before selecting the new channel
+                return getChannels()
+                    .then(channelsData => {
+                        allChannels = channelsData.channels;
+                        renderChannelList(channelsData.channels);
+                        // Now select the newly created channel
+                        selectChannel(data.channelId);
+                    });
             })
             .catch(error => {
                 console.error('Failed to create channel:', error);
@@ -545,3 +556,56 @@ const handleLeaveChannel = (channelId) => {
  * @return {number|null} Current channel ID or null
  */
 export const getCurrentChannelId = () => currentChannelId;
+
+/**
+ * Show image preview when user selects an image file
+ * Displays thumbnail in the message input area
+ */
+const showImagePreview = () => {
+    const imageInput = document.getElementById('message-image-input');
+    const previewContainer = document.getElementById('message-image-preview-container');
+
+    // Clear existing preview
+    previewContainer.textContent = '';
+
+    if (!imageInput.files || !imageInput.files[0]) {
+        previewContainer.style.display = 'none';
+        return;
+    }
+
+    const file = imageInput.files[0];
+
+    // Create file reader to generate preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        // Create preview image
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'message-image-preview';
+        img.alt = 'Image preview';
+
+        // Create filename label
+        const label = document.createElement('span');
+        label.textContent = file.name;
+        label.style.flex = '1';
+        label.style.fontSize = 'var(--font-size-sm)';
+
+        // Create remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '✕ Remove';
+        removeBtn.className = 'message-image-preview-remove';
+        removeBtn.addEventListener('click', () => {
+            imageInput.value = '';
+            previewContainer.style.display = 'none';
+            previewContainer.textContent = '';
+        });
+
+        // Assemble preview
+        previewContainer.appendChild(img);
+        previewContainer.appendChild(label);
+        previewContainer.appendChild(removeBtn);
+        previewContainer.style.display = 'flex';
+    };
+
+    reader.readAsDataURL(file);
+};

@@ -287,39 +287,44 @@ const createReactionsDisplay = (reacts, messageId, currentUserId, channelId) => 
 export const handleSendMessage = (channelId) => {
     const messageInput = document.getElementById('message-input');
     const imageInput = document.getElementById('message-image-input');
+    const previewContainer = document.getElementById('message-image-preview-container');
     const messageText = messageInput.value.trim();
 
-    // Check if there's an image selected
-    if (imageInput.files && imageInput.files[0]) {
-        // Send image message (no text)
-        fileToDataUrl(imageInput.files[0])
-            .then(imageData => {
-                return sendMessage(channelId, null, imageData);
-            })
-            .then(() => {
-                imageInput.value = '';
-                loadMessages(channelId);
-            })
-            .catch(error => {
-                console.error('Failed to send image:', error);
-            });
-    } else {
-        // Send text message (no image)
-        // Validate message (2.3.3 - no empty/whitespace-only messages)
-        if (!messageText) {
-            showError('Message cannot be empty');
-            return;
-        }
+    // Check if there's text or image (at least one required)
+    const hasText = messageText.length > 0;
+    const hasImage = imageInput.files && imageInput.files[0];
 
-        sendMessage(channelId, messageText)
-            .then(() => {
-                messageInput.value = '';
-                loadMessages(channelId);
-            })
-            .catch(error => {
-                console.error('Failed to send message:', error);
-            });
+    if (!hasText && !hasImage) {
+        showError('Message cannot be empty');
+        return;
     }
+
+    // Prepare image data if exists
+    const imagePromise = hasImage
+        ? fileToDataUrl(imageInput.files[0])
+        : Promise.resolve(null);
+
+    // Send message with both text and image (if available)
+    imagePromise
+        .then(imageData => {
+            // Send message with text (or null) and image (or null)
+            return sendMessage(
+                channelId,
+                hasText ? messageText : null,
+                imageData
+            );
+        })
+        .then(() => {
+            // Clear inputs after successful send
+            messageInput.value = '';
+            imageInput.value = '';
+            previewContainer.style.display = 'none';
+            previewContainer.textContent = '';
+            loadMessages(channelId);
+        })
+        .catch(error => {
+            console.error('Failed to send message:', error);
+        });
 };
 
 /**
