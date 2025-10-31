@@ -123,9 +123,11 @@ export const showOwnProfile = () => {
         handleImageUpload
             .then(imageData => {
                 // Update profile with new values
+                // Only send password if user entered one
+                const passwordValue = password.trim() ? password : null;
                 return updateUserProfile(
                     email,
-                    password || null,
+                    passwordValue,
                     name,
                     bio,
                     imageData
@@ -137,6 +139,7 @@ export const showOwnProfile = () => {
             })
             .catch(error => {
                 console.error('Failed to update profile:', error);
+                // Error already displayed by api.js or showError
             });
     };
 
