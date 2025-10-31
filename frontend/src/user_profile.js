@@ -7,6 +7,12 @@
 import { getUserProfile, updateUserProfile } from './api.js';
 import { getUserId, showError, showNotice, fileToDataUrl } from './helpers.js';
 
+// Track event listener state to prevent duplicate listeners
+let isEditModeActive = false;
+let currentSubmitHandler = null;
+let currentCancelHandler = null;
+let currentOutsideClickHandler = null;
+
 /**
  * Show a user's profile modal (for viewing other users)
  * Implements 2.4.2 - User profiles
@@ -188,6 +194,25 @@ const showProfileEditMode = (user) => {
     const form = document.getElementById('own-profile-form');
     const cancelBtn = document.getElementById('own-profile-cancel');
 
+    // Prevent duplicate setup if already active
+    if (isEditModeActive && modal.style.display === 'flex') {
+        return;
+    }
+
+    // Remove any existing event listeners before adding new ones
+    if (currentSubmitHandler) {
+        form.removeEventListener('submit', currentSubmitHandler);
+    }
+    if (currentCancelHandler) {
+        cancelBtn.removeEventListener('click', currentCancelHandler);
+    }
+    if (currentOutsideClickHandler) {
+        modal.removeEventListener('click', currentOutsideClickHandler);
+    }
+
+    // Mark edit mode as active
+    isEditModeActive = true;
+
     // Show modal
     modal.style.display = 'flex';
 
@@ -260,6 +285,12 @@ const showProfileEditMode = (user) => {
         cancelBtn.removeEventListener('click', cancelHandler);
         modal.removeEventListener('click', outsideClickHandler);
         form.reset();
+
+        // Reset edit mode state
+        isEditModeActive = false;
+        currentSubmitHandler = null;
+        currentCancelHandler = null;
+        currentOutsideClickHandler = null;
     };
 
     // Click outside to close
@@ -268,6 +299,11 @@ const showProfileEditMode = (user) => {
             closeOwnProfile();
         }
     };
+
+    // Store current handlers for cleanup
+    currentSubmitHandler = submitHandler;
+    currentCancelHandler = cancelHandler;
+    currentOutsideClickHandler = outsideClickHandler;
 
     form.addEventListener('submit', submitHandler);
     cancelBtn.addEventListener('click', cancelHandler);

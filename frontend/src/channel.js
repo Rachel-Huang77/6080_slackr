@@ -23,6 +23,7 @@ let currentChannelData = null;
 let allChannels = []; // Store all channels list for non-member access
 let isEditMode = false; // Track if create channel modal is in edit mode
 let editingChannelId = null; // Store the channel ID being edited
+let isInitialized = false; // Flag to prevent duplicate event listener registration
 
 /**
  * Initialize channel functionality
@@ -31,6 +32,12 @@ let editingChannelId = null; // Store the channel ID being edited
 export const initChannels = () => {
     // Load channels when dashboard is shown
     loadChannels();
+
+    // Only set up event listeners once to prevent duplicate listeners
+    if (isInitialized) {
+        return;
+    }
+    isInitialized = true;
 
     // Set up create channel button
     const createChannelBtn = document.getElementById('create-channel-button');
