@@ -94,6 +94,8 @@
             <div id="messages-container"></div>
             <div class="message-input-container">
               <textarea id="message-input" placeholder="Type your message here..."></textarea>
+              <input type="file" id="message-image-input" accept="image/png,image/jpeg,image/jpg" style="display: none;">
+              <button id="message-image-button">📷 Upload Image</button>
               <button id="message-send-button">Send</button>
             </div>
           </div>
@@ -175,6 +177,17 @@
           <button type="submit" id="own-profile-submit">Update Profile</button>
           <button type="button" id="own-profile-cancel">Cancel</button>
         </form>
+      </div>
+    </div>
+
+    <!-- Image Viewer Modal (hidden by default) -->
+    <div id="image-viewer-modal" class="modal" style="display: none;">
+      <div class="modal-content image-viewer-content">
+        <button id="image-viewer-close" class="image-viewer-close">×</button>
+        <button id="image-viewer-prev" class="image-nav-button image-nav-prev">‹</button>
+        <img id="image-viewer-image" src="" alt="Enlarged view">
+        <button id="image-viewer-next" class="image-nav-button image-nav-next">›</button>
+        <div id="image-viewer-info"></div>
       </div>
     </div>
 
