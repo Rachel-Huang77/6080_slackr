@@ -41,7 +41,7 @@ export const loadMessages = (channelId) => {
 
 /**
  * Render messages in the messages container
- * Messages are displayed in reverse chronological order (newest at bottom)
+ * Pinned messages are displayed at the top, then regular messages in chronological order
  * @param {Array} messages - Array of message objects
  * @param {number} channelId - Channel ID
  */
@@ -61,12 +61,40 @@ const renderMessages = (messages, channelId) => {
     const reversedMessages = [...messages].reverse();
     const currentUserId = getUserId();
 
-    reversedMessages.forEach(msg => {
-        const messageEl = createMessageElement(msg, currentUserId, channelId);
+    // Separate pinned and regular messages
+    const pinnedMessages = reversedMessages.filter(msg => msg.pinned);
+    const regularMessages = reversedMessages.filter(msg => !msg.pinned);
+
+    // Display pinned messages section if there are any
+    if (pinnedMessages.length > 0) {
+        const pinnedSection = document.createElement('div');
+        pinnedSection.className = 'pinned-messages-section';
+
+        const pinnedHeader = document.createElement('div');
+        pinnedHeader.className = 'pinned-messages-header';
+        pinnedHeader.textContent = `📌 Pinned Messages (${pinnedMessages.length})`;
+        pinnedSection.appendChild(pinnedHeader);
+
+        pinnedMessages.forEach(msg => {
+            const messageEl = createMessageElement(msg, currentUserId, channelId, true);
+            pinnedSection.appendChild(messageEl);
+        });
+
+        container.appendChild(pinnedSection);
+
+        // Add separator between pinned and regular messages
+        const separator = document.createElement('div');
+        separator.className = 'pinned-messages-separator';
+        container.appendChild(separator);
+    }
+
+    // Display regular messages
+    regularMessages.forEach(msg => {
+        const messageEl = createMessageElement(msg, currentUserId, channelId, false);
         container.appendChild(messageEl);
     });
 
-    // Scroll to bottom to show newest messages
+    // Scroll to bottom to show newest messages (but pinned stay at top)
     container.scrollTop = container.scrollHeight;
 };
 
@@ -76,11 +104,15 @@ const renderMessages = (messages, channelId) => {
  * @param {object} msg - Message object
  * @param {number} currentUserId - Current user ID
  * @param {number} channelId - Channel ID
+ * @param {boolean} isPinnedSection - Whether this message is in the pinned section
  * @return {HTMLElement} Message container element
  */
-const createMessageElement = (msg, currentUserId, channelId) => {
+const createMessageElement = (msg, currentUserId, channelId, isPinnedSection = false) => {
     const container = document.createElement('div');
     container.className = 'message-container';
+    if (isPinnedSection) {
+        container.classList.add('message-container-pinned');
+    }
     container.setAttribute('data-message-id', msg.id);
 
     // Message header with sender photo and info
