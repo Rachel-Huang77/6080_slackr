@@ -398,11 +398,58 @@ const handlePinMessage = (messageId, isPinned, channelId) => {
  * Implements 2.3.6 - Reacting to messages
  */
 const showReactionsMenu = (messageId, channelId) => {
-    const emoji = prompt(`Choose a reaction:\n${REACTIONS.join(' ')}\n\nEnter emoji:`);
-
-    if (emoji && emoji.trim()) {
-        handleReact(messageId, emoji.trim(), channelId);
+    // Remove existing emoji picker if any
+    const existing = document.getElementById('emoji-picker-modal');
+    if (existing) {
+        existing.remove();
     }
+
+    // Create modal
+    const modal = document.createElement('div');
+    modal.id = 'emoji-picker-modal';
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+
+    const content = document.createElement('div');
+    content.className = 'modal-content';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Choose a reaction:';
+    content.appendChild(title);
+
+    // Create emoji picker
+    const picker = document.createElement('div');
+    picker.className = 'emoji-picker';
+
+    REACTIONS.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'emoji-option';
+        btn.textContent = emoji;
+        btn.addEventListener('click', () => {
+            handleReact(messageId, emoji, channelId);
+            modal.remove();
+        });
+        picker.appendChild(btn);
+    });
+
+    content.appendChild(picker);
+
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Cancel';
+    closeBtn.className = 'btn-secondary';
+    closeBtn.addEventListener('click', () => modal.remove());
+    content.appendChild(closeBtn);
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+
+    // Click outside to close
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
 };
 
 /**
