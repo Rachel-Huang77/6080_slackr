@@ -15,6 +15,7 @@ import {
     getUserProfile
 } from './api.js';
 import { getUserId, showError, showNotice, formatTimestamp } from './helpers.js';
+import { showUserProfile } from './user_profile.js';
 
 // Available emoji reactions (Milestone 2.3.6)
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
@@ -108,8 +109,14 @@ const createMessageElement = (msg, currentUserId, channelId) => {
     senderInfo.className = 'message-sender-info';
 
     const senderName = document.createElement('strong');
-    senderName.className = 'message-sender-name';
+    senderName.className = 'message-user-name';
     senderName.textContent = `User #${msg.sender}`; // Fallback, will be updated
+    senderName.style.cursor = 'pointer'; // Make it look clickable
+
+    // Add click handler to show user profile (Milestone 2.4.2)
+    senderName.addEventListener('click', () => {
+        showUserProfile(msg.sender);
+    });
 
     const timestamp = document.createElement('span');
     timestamp.className = 'message-timestamp';
