@@ -14,11 +14,15 @@ import {
     unreactMessage,
     getUserProfile
 } from './api.js';
-import { getUserId, showError, showNotice, formatTimestamp } from './helpers.js';
+import { getUserId, showError, showNotice, formatTimestamp, fileToDataUrl } from './helpers.js';
 import { showUserProfile } from './user_profile.js';
 
 // Available emoji reactions (Milestone 2.3.6)
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+
+// Image gallery state (Milestone 2.5.2)
+let currentImageIndex = 0;
+let channelImages = [];
 
 /**
  * Load and display messages for a channel
@@ -153,12 +157,17 @@ const createMessageElement = (msg, currentUserId, channelId) => {
         container.appendChild(content);
     }
 
-    // Message image
+    // Message image (Milestone 2.5.1, 2.5.2)
     if (msg.image) {
         const img = document.createElement('img');
         img.src = msg.image;
         img.alt = 'Message image';
         img.className = 'message-image';
+        img.style.cursor = 'pointer';
+        // Click to view enlarged image
+        img.addEventListener('click', () => {
+            showImageViewer(msg.image, channelId);
+        });
         container.appendChild(img);
     }
 
@@ -273,25 +282,44 @@ const createReactionsDisplay = (reacts, messageId, currentUserId, channelId) => 
 /**
  * Handle sending a new message
  * Implements 2.3.3 - Sending messages
+ * Implements 2.5.1 - Sending photos (text OR image, not both)
  */
 export const handleSendMessage = (channelId) => {
     const messageInput = document.getElementById('message-input');
+    const imageInput = document.getElementById('message-image-input');
     const messageText = messageInput.value.trim();
 
-    // Validate message (2.3.3 - no empty/whitespace-only messages)
-    if (!messageText) {
-        showError('Message cannot be empty');
-        return;
-    }
+    // Check if there's an image selected
+    if (imageInput.files && imageInput.files[0]) {
+        // Send image message (no text)
+        fileToDataUrl(imageInput.files[0])
+            .then(imageData => {
+                return sendMessage(channelId, null, imageData);
+            })
+            .then(() => {
+                imageInput.value = '';
+                loadMessages(channelId);
+            })
+            .catch(error => {
+                console.error('Failed to send image:', error);
+            });
+    } else {
+        // Send text message (no image)
+        // Validate message (2.3.3 - no empty/whitespace-only messages)
+        if (!messageText) {
+            showError('Message cannot be empty');
+            return;
+        }
 
-    sendMessage(channelId, messageText)
-        .then(() => {
-            messageInput.value = '';
-            loadMessages(channelId);
-        })
-        .catch(error => {
-            console.error('Failed to send message:', error);
-        });
+        sendMessage(channelId, messageText)
+            .then(() => {
+                messageInput.value = '';
+                loadMessages(channelId);
+            })
+            .catch(error => {
+                console.error('Failed to send message:', error);
+            });
+    }
 };
 
 /**
@@ -484,4 +512,97 @@ const displayPinnedMessagesModal = (pinnedMessages, channelId) => {
             modal.remove();
         }
     });
+};
+
+/**
+ * Show image viewer modal with navigation
+ * Implements 2.5.2 - Viewing photos with navigation
+ * @param {string} imageSrc - Image source URL to display
+ * @param {number} channelId - Channel ID to fetch all images from
+ */
+const showImageViewer = (imageSrc, channelId) => {
+    // Fetch all messages to get all images in channel
+    getMessages(channelId, 0)
+        .then(data => {
+            // Extract all images from messages
+            channelImages = data.messages
+                .filter(msg => msg.image)
+                .map(msg => msg.image)
+                .reverse(); // Oldest first
+
+            // Find current image index
+            currentImageIndex = channelImages.findIndex(img => img === imageSrc);
+            if (currentImageIndex === -1) currentImageIndex = 0;
+
+            // Show the modal
+            displayImageViewer();
+        })
+        .catch(error => {
+            console.error('Failed to load images:', error);
+        });
+};
+
+/**
+ * Display the image viewer modal
+ */
+const displayImageViewer = () => {
+    const modal = document.getElementById('image-viewer-modal');
+    const image = document.getElementById('image-viewer-image');
+    const prevBtn = document.getElementById('image-viewer-prev');
+    const nextBtn = document.getElementById('image-viewer-next');
+    const closeBtn = document.getElementById('image-viewer-close');
+    const info = document.getElementById('image-viewer-info');
+
+    // Set current image
+    image.src = channelImages[currentImageIndex];
+
+    // Update navigation buttons visibility
+    prevBtn.style.display = currentImageIndex > 0 ? 'block' : 'none';
+    nextBtn.style.display = currentImageIndex < channelImages.length - 1 ? 'block' : 'none';
+
+    // Update info text
+    info.textContent = `Image ${currentImageIndex + 1} of ${channelImages.length}`;
+
+    // Show modal
+    modal.style.display = 'flex';
+
+    // Navigation handlers
+    const prevHandler = () => {
+        if (currentImageIndex > 0) {
+            currentImageIndex--;
+            displayImageViewer();
+        }
+    };
+
+    const nextHandler = () => {
+        if (currentImageIndex < channelImages.length - 1) {
+            currentImageIndex++;
+            displayImageViewer();
+        }
+    };
+
+    const closeHandler = () => {
+        modal.style.display = 'none';
+        prevBtn.removeEventListener('click', prevHandler);
+        nextBtn.removeEventListener('click', nextHandler);
+        closeBtn.removeEventListener('click', closeHandler);
+        modal.removeEventListener('click', outsideClickHandler);
+    };
+
+    const outsideClickHandler = (e) => {
+        if (e.target === modal) {
+            closeHandler();
+        }
+    };
+
+    // Remove old listeners and add new ones
+    prevBtn.removeEventListener('click', prevHandler);
+    nextBtn.removeEventListener('click', nextHandler);
+    closeBtn.removeEventListener('click', closeHandler);
+    modal.removeEventListener('click', outsideClickHandler);
+
+    prevBtn.addEventListener('click', prevHandler);
+    nextBtn.addEventListener('click', nextHandler);
+    closeBtn.addEventListener('click', closeHandler);
+    modal.addEventListener('click', outsideClickHandler);
 };
