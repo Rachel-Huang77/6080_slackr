@@ -40,8 +40,12 @@ export const showInviteModal = (channelId, onSuccess) => {
             // Filter out users who are already members
             const nonMembers = allUsers.filter(user => !currentMembers.includes(user.id));
 
-            // Sort by name alphabetically (case-insensitive)
-            nonMembers.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+            // Sort by name alphabetically (case-insensitive), handling undefined/null names
+            nonMembers.sort((a, b) => {
+                const nameA = (a.name || '').toLowerCase();
+                const nameB = (b.name || '').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
 
             // Check if there are any users to invite
             if (nonMembers.length === 0) {
@@ -140,11 +144,11 @@ const createUserInviteItem = (user) => {
     checkbox.id = `invite-user-${user.id}`;
     checkbox.dataset.userId = user.id;
 
-    // Create label with user name
+    // Create label with user name (or fallback if no name)
     const label = document.createElement('label');
     label.htmlFor = `invite-user-${user.id}`;
     label.className = 'invite-member-name';
-    label.textContent = user.name;
+    label.textContent = user.name || `User #${user.id}`;
 
     container.appendChild(checkbox);
     container.appendChild(label);
