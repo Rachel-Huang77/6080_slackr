@@ -152,15 +152,6 @@ export const leaveChannel = (channelId) => {
 };
 
 /**
- * Delete a channel (for creators only)
- * @param {number} channelId - Channel ID
- * @return {Promise<object>} Promise resolving to success response
- */
-export const deleteChannel = (channelId) => {
-    return apiCall(`/channel/${channelId}`, 'DELETE');
-};
-
-/**
  * Get messages from a channel
  * @param {number} channelId - Channel ID
  * @param {number} start - Starting index for pagination

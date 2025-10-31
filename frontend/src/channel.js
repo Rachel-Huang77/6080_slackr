@@ -11,7 +11,6 @@ import {
     updateChannel,
     joinChannel,
     leaveChannel,
-    deleteChannel,
     getUserProfile
 } from './api.js';
 import { getUserId, showError, formatTimestamp } from './helpers.js';
@@ -304,15 +303,8 @@ const renderChannelDetails = (channelData) => {
         });
         actions.appendChild(inviteBtn);
 
-        // Delete button (for creators only)
-        if (isCreator) {
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = 'Delete Channel';
-            deleteBtn.className = 'btn-danger';
-            deleteBtn.addEventListener('click', () => handleDeleteChannel(channelData.id));
-            actions.appendChild(deleteBtn);
-        } else {
-            // Leave button (for non-creators)
+        // Leave button (for non-creators)
+        if (!isCreator) {
             const leaveBtn = document.createElement('button');
             leaveBtn.textContent = 'Leave Channel';
             leaveBtn.className = 'btn-danger';
@@ -556,34 +548,6 @@ const handleLeaveChannel = (channelId) => {
         .catch(error => {
             // Error already displayed by api.js
             console.error('Failed to leave channel:', error);
-        });
-};
-
-/**
- * Handle deleting a channel (creator only)
- * @param {number} channelId - Channel ID to delete
- */
-const handleDeleteChannel = (channelId) => {
-    const confirmed = confirm('Are you sure you want to delete this channel? This action cannot be undone.');
-
-    if (!confirmed) {
-        return;
-    }
-
-    deleteChannel(channelId)
-        .then(() => {
-            // Return to welcome screen
-            document.getElementById('channel-view').style.display = 'none';
-            document.getElementById('welcome-screen').style.display = 'flex';
-            currentChannelId = null;
-            currentChannelData = null;
-
-            // Reload channel list
-            loadChannels();
-        })
-        .catch(error => {
-            // Error already displayed by api.js
-            console.error('Failed to delete channel:', error);
         });
 };
 
