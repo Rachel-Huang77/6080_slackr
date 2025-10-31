@@ -164,12 +164,16 @@ export const getMessages = (channelId, start = 0) => {
 /**
  * Send a message to a channel
  * @param {number} channelId - Channel ID
- * @param {string} message - Message text
+ * @param {string|null} message - Message text (null for image-only messages)
  * @param {string|null} image - Optional image data URL
  * @return {Promise<object>} Promise resolving to success response
  */
 export const sendMessage = (channelId, message, image = null) => {
-    const body = { message };
+    const body = {};
+    // Only include message if it's not null (Milestone 2.5.1: text OR image, not both)
+    if (message !== null && message !== undefined) {
+        body.message = message;
+    }
     if (image) {
         body.image = image;
     }
