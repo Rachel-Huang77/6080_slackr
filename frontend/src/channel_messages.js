@@ -181,12 +181,16 @@ const createMessageElement = (msg, currentUserId, channelId, isPinnedSection = f
 
     container.appendChild(header);
 
+    // Create message body container for content and image
+    const messageBody = document.createElement('div');
+    messageBody.className = 'message-body';
+
     // Message content
     if (msg.message) {
         const content = document.createElement('p');
         content.className = 'message-content';
         content.textContent = msg.message;
-        container.appendChild(content);
+        messageBody.appendChild(content);
     }
 
     // Message image (Milestone 2.5.1, 2.5.2)
@@ -200,8 +204,10 @@ const createMessageElement = (msg, currentUserId, channelId, isPinnedSection = f
         img.addEventListener('click', () => {
             showImageViewer(msg.image, channelId);
         });
-        container.appendChild(img);
+        messageBody.appendChild(img);
     }
+
+    container.appendChild(messageBody);
 
     // Message actions (edit/delete/pin/react)
     const actions = createMessageActions(msg, currentUserId, channelId);

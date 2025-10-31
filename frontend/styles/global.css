@@ -289,8 +289,9 @@ button:hover {
 .message-container {
     position: relative;
     display: flex;
-    gap: var(--spacing-md);
-    padding: var(--spacing-sm) var(--spacing-md);
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
     border-radius: 4px;
 }
 
@@ -340,7 +341,6 @@ button:hover {
     display: flex;
     gap: var(--spacing-sm);
     align-items: center;
-    margin-bottom: var(--spacing-xs);
 }
 
 .message-sender-photo {
@@ -353,7 +353,8 @@ button:hover {
 
 .message-sender-info {
     display: flex;
-    flex-direction: column;
+    align-items: baseline;
+    gap: var(--spacing-sm);
     flex: 1;
 }
 
@@ -371,7 +372,19 @@ button:hover {
 .message-timestamp {
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
-    margin-left: var(--spacing-sm);
+}
+
+.message-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-left: calc(36px + var(--spacing-sm));
+}
+
+.message-content {
+    margin: 0;
+    line-height: 1.5;
+    word-wrap: break-word;
 }
 
 .message-image {
