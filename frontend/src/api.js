@@ -258,20 +258,28 @@ export const getAllUsers = () => {
 
 /**
  * Update user's own profile
- * @param {string} email - New email (optional)
- * @param {string} password - New password (optional)
- * @param {string} name - New name (optional)
- * @param {string} bio - New bio (optional)
- * @param {string} image - New profile image data URL (optional)
+ * @param {string} email - New email
+ * @param {string|null} password - New password (optional, can be null)
+ * @param {string} name - New name
+ * @param {string} bio - New bio (can be empty string)
+ * @param {string|null} image - New profile image data URL (optional)
  * @return {Promise<object>} Promise resolving to success response
  */
 export const updateUserProfile = (email, password, name, bio, image) => {
-    const body = {};
-    if (email) body.email = email;
-    if (password) body.password = password;
-    if (name) body.name = name;
-    if (bio !== undefined) body.bio = bio; // Allow empty string
-    if (image) body.image = image;
+    const body = {
+        email: email,
+        name: name,
+        bio: bio || ''
+    };
+
+    // Only include password and image if provided
+    if (password) {
+        body.password = password;
+    }
+    if (image) {
+        body.image = image;
+    }
+
     return apiCall('/user', 'PUT', body);
 };
 
