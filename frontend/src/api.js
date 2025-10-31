@@ -243,3 +243,40 @@ export const reactMessage = (channelId, messageId, react) => {
 export const unreactMessage = (channelId, messageId, react) => {
     return apiCall(`/message/unreact/${channelId}/${messageId}`, 'POST', { react });
 };
+
+/**
+ * Get list of all users
+ * @return {Promise<object>} Promise resolving to { users: [...] }
+ */
+export const getAllUsers = () => {
+    return apiCall('/user', 'GET');
+};
+
+/**
+ * Update user's own profile
+ * @param {string} email - New email (optional)
+ * @param {string} password - New password (optional)
+ * @param {string} name - New name (optional)
+ * @param {string} bio - New bio (optional)
+ * @param {string} image - New profile image data URL (optional)
+ * @return {Promise<object>} Promise resolving to success response
+ */
+export const updateUserProfile = (email, password, name, bio, image) => {
+    const body = {};
+    if (email) body.email = email;
+    if (password) body.password = password;
+    if (name) body.name = name;
+    if (bio !== undefined) body.bio = bio; // Allow empty string
+    if (image) body.image = image;
+    return apiCall('/user', 'PUT', body);
+};
+
+/**
+ * Invite a user to a channel
+ * @param {number} channelId - Channel ID
+ * @param {number} userId - User ID to invite
+ * @return {Promise<object>} Promise resolving to success response
+ */
+export const inviteUserToChannel = (channelId, userId) => {
+    return apiCall(`/channel/${channelId}/invite`, 'POST', { userId });
+};
