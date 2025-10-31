@@ -65,35 +65,140 @@ export const showUserProfile = (userId) => {
 };
 
 /**
- * Show user's own profile modal for viewing and editing
+ * Show user's own profile modal for viewing (first) then editing
  * Implements 2.4.3 - Viewing and editing user's own profile
  */
 export const showOwnProfile = () => {
+    const userId = getUserId();
+
+    // Fetch current user profile first
+    getUserProfile(userId)
+        .then(user => {
+            // Show view mode first
+            showProfileViewMode(user);
+        })
+        .catch(error => {
+            console.error('Failed to load own profile:', error);
+            showError('Failed to load profile');
+        });
+};
+
+/**
+ * Show profile in view mode (before editing)
+ * @param {object} user - User profile data
+ */
+const showProfileViewMode = (user) => {
+    // Remove existing view modal if any
+    const existing = document.getElementById('profile-view-modal');
+    if (existing) {
+        existing.remove();
+    }
+
+    // Create modal
+    const modal = document.createElement('div');
+    modal.id = 'profile-view-modal';
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+
+    const content = document.createElement('div');
+    content.className = 'modal-content';
+
+    // Title
+    const title = document.createElement('h2');
+    title.textContent = 'My Profile';
+    content.appendChild(title);
+
+    // Profile image
+    if (user.image) {
+        const img = document.createElement('img');
+        img.src = user.image;
+        img.alt = 'Profile photo';
+        img.style.width = '100px';
+        img.style.height = '100px';
+        img.style.borderRadius = '4px';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
+        img.style.margin = '0 auto var(--spacing-md)';
+        content.appendChild(img);
+    }
+
+    // Name
+    const nameP = document.createElement('p');
+    const nameLabel = document.createElement('strong');
+    nameLabel.textContent = 'Name: ';
+    nameP.appendChild(nameLabel);
+    nameP.appendChild(document.createTextNode(user.name || 'N/A'));
+    content.appendChild(nameP);
+
+    // Email
+    const emailP = document.createElement('p');
+    const emailLabel = document.createElement('strong');
+    emailLabel.textContent = 'Email: ';
+    emailP.appendChild(emailLabel);
+    emailP.appendChild(document.createTextNode(user.email || 'N/A'));
+    content.appendChild(emailP);
+
+    // Bio
+    const bioP = document.createElement('p');
+    const bioLabel = document.createElement('strong');
+    bioLabel.textContent = 'Bio: ';
+    bioP.appendChild(bioLabel);
+    bioP.appendChild(document.createTextNode(user.bio || 'No bio available'));
+    content.appendChild(bioP);
+
+    // Buttons
+    const btnContainer = document.createElement('div');
+    btnContainer.style.display = 'flex';
+    btnContainer.style.gap = 'var(--spacing-sm)';
+    btnContainer.style.marginTop = 'var(--spacing-md)';
+
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit Profile';
+    editBtn.className = 'btn-primary';
+    editBtn.addEventListener('click', () => {
+        modal.remove();
+        showProfileEditMode(user);
+    });
+    btnContainer.appendChild(editBtn);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Close';
+    closeBtn.className = 'btn-secondary';
+    closeBtn.addEventListener('click', () => modal.remove());
+    btnContainer.appendChild(closeBtn);
+
+    content.appendChild(btnContainer);
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+
+    // Click outside to close
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+};
+
+/**
+ * Show profile in edit mode
+ * @param {object} user - User profile data
+ */
+const showProfileEditMode = (user) => {
     const modal = document.getElementById('own-profile-container');
     const form = document.getElementById('own-profile-form');
     const cancelBtn = document.getElementById('own-profile-cancel');
 
-    const userId = getUserId();
-
     // Show modal
     modal.style.display = 'flex';
 
-    // Fetch current user profile
-    getUserProfile(userId)
-        .then(user => {
-            // Populate form with current values
-            document.getElementById('own-profile-name').value = user.name || '';
-            document.getElementById('own-profile-email').value = user.email || '';
-            document.getElementById('own-profile-bio').value = user.bio || '';
-            document.getElementById('own-profile-password').value = '';
+    // Populate form with current values
+    document.getElementById('own-profile-name').value = user.name || '';
+    document.getElementById('own-profile-email').value = user.email || '';
+    document.getElementById('own-profile-bio').value = user.bio || '';
+    document.getElementById('own-profile-password').value = '';
 
-            // Store current image for preview
-            modal.dataset.currentImage = user.image || '';
-        })
-        .catch(error => {
-            console.error('Failed to load own profile:', error);
-            modal.style.display = 'none';
-        });
+    // Store current image for preview
+    modal.dataset.currentImage = user.image || '';
 
     // Handle form submission
     const submitHandler = (e) => {
