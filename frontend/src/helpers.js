@@ -22,9 +22,9 @@ export const fileToDataUrl = (file) => {
     const validFileTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     const valid = validFileTypes.find(type => type === file.type);
 
-    // Bad data, let's walk away.
+    // Bad data, return rejected promise instead of throwing
     if (!valid) {
-        throw Error('provided file is not a png, jpg or jpeg image.');
+        return Promise.reject(new Error('provided file is not a png, jpg or jpeg image.'));
     }
 
     const reader = new FileReader();
