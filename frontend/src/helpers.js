@@ -142,7 +142,6 @@ export const setToken = (token) => {
  * Retrieve authentication token from localStorage
  * @return {string|null} The authentication token or null if not found
  */
-// javascript src/helpers.js（若已有 getToken，则替换为更安全版本）
 export const getToken = () => {
   const raw = localStorage.getItem('slackr-token');
   return isValidToken(raw) ? raw : null;

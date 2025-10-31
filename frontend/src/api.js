@@ -169,7 +169,11 @@ export const getMessages = (channelId, start = 0) => {
  * @return {Promise<object>} Promise resolving to success response
  */
 export const sendMessage = (channelId, message, image = null) => {
-    return apiCall(`/message/${channelId}`, 'POST', { message, image });
+    const body = { message };
+    if (image) {
+        body.image = image;
+    }
+    return apiCall(`/message/${channelId}`, 'POST', body);
 };
 
 /**
@@ -181,7 +185,11 @@ export const sendMessage = (channelId, message, image = null) => {
  * @return {Promise<object>} Promise resolving to success response
  */
 export const editMessage = (channelId, messageId, message, image = null) => {
-    return apiCall(`/message/${channelId}/${messageId}`, 'PUT', { message, image });
+    const body = { message };
+    if (image) {
+        body.image = image;
+    }
+    return apiCall(`/message/${channelId}/${messageId}`, 'PUT', body);
 };
 
 /**
