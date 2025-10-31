@@ -48,6 +48,13 @@ export const initChannels = () => {
     const sendBtn = document.getElementById('message-send-button');
     sendBtn.addEventListener('click', () => handleSendMessage(currentChannelId));
 
+    // Set up image upload button (Milestone 2.5.1)
+    const imageBtn = document.getElementById('message-image-button');
+    const imageInput = document.getElementById('message-image-input');
+    imageBtn.addEventListener('click', () => {
+        imageInput.click();
+    });
+
     // Set up Enter key for message input
     const messageInput = document.getElementById('message-input');
     messageInput.addEventListener('keypress', (e) => {
