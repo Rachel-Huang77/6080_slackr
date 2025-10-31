@@ -20,6 +20,7 @@ import {
     clearUserId
 } from './helpers.js';
 import { initChannels } from './channel.js';
+import { showOwnProfile, initPasswordToggle } from './user_profile.js';
 
 console.log('Slackr application started!');
 
@@ -235,6 +236,13 @@ const setupEventListeners = () => {
     // Logout listener
     const logoutButton = document.getElementById('logout-button');
     logoutButton.addEventListener('click', handleLogout);
+
+    // My Profile button listener (Milestone 2.4.3)
+    const myProfileButton = document.getElementById('avatar-label');
+    myProfileButton.addEventListener('click', showOwnProfile);
+
+    // Initialize password toggle for profile form
+    initPasswordToggle();
 };
 
 /**
