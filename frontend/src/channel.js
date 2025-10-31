@@ -15,6 +15,7 @@ import {
 } from './api.js';
 import { getUserId, showError, formatTimestamp } from './helpers.js';
 import { loadMessages, handleSendMessage, showPinnedMessages } from './channel_messages.js';
+import { showInviteModal } from './channel_invite.js';
 
 // Current selected channel state
 let currentChannelId = null;
@@ -268,6 +269,20 @@ const renderChannelDetails = (channelData) => {
         pinnedBtn.className = 'btn-secondary';
         pinnedBtn.addEventListener('click', () => showPinnedMessages(channelData.id));
         actions.appendChild(pinnedBtn);
+
+        // Invite users button (Milestone 2.4.1)
+        const inviteBtn = document.createElement('button');
+        inviteBtn.textContent = 'Invite Users';
+        inviteBtn.id = 'invite-user-button';
+        inviteBtn.className = 'btn-secondary';
+        inviteBtn.addEventListener('click', () => {
+            showInviteModal(channelData.id, () => {
+                // Reload channel details after successful invite
+                loadChannelDetails(channelData.id);
+                loadChannels();
+            });
+        });
+        actions.appendChild(inviteBtn);
 
         // Leave button (for non-creators)
         if (!isCreator) {
